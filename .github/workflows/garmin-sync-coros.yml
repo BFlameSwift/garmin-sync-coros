@@ -6,7 +6,7 @@ on:
     branches:
       - master
   schedule:
-    - cron: '0 0,6,19 * * ?'
+    - cron: '0 0,6,13,19 * * ?'
 env:
   GITHUB_NAME: bflameswift
   GITHUB_EMAIL: bflameswift@163.com
