@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main  # 每次提交到 main 分支时触发
+      - master
   schedule:
     - cron: '0 0,6,19 * * ?'
 env:
