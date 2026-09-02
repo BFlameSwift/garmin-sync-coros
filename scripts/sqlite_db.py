@@ -1,7 +1,10 @@
 import sqlite3
 import traceback
 import os
-from config import DB_DIR
+try:
+    from .config import DB_DIR
+except ImportError:  # direct script execution
+    from config import DB_DIR
 
 
 class SqliteDB(object):
@@ -13,8 +16,7 @@ class SqliteDB(object):
         self.connection = None
         self.cursor = None
         
-        if not os.path.exists(DB_DIR):
-            os.mkdir(DB_DIR)
+        os.makedirs(DB_DIR, exist_ok=True)
 
     def __enter__(self):
         try:

@@ -1,4 +1,10 @@
-# 如果出现无法同步请检查下代码是否最新如果非最新请重新fork sync代码后删除db/garmin.db文件重跑一遍！！！
+# Garmin ↔ COROS 双向同步
+
+同步状态和 FIT 文件只保存在 Actions 运行时生成的 `db/`、`garmin-fit/`、`coros-fit/`
+中。首次升级请删除旧的 `db/*.db` 后重新运行一次，让状态表按当前 schema 初始化。
+
+重要：Garmin/COROS 密码只能配置为 GitHub Repository Secrets，不能写入代码、测试文件、
+Issue 或日志。旧版本曾包含云端临时凭据，请立即轮换相关凭据，并把本次提交视为已暴露。
 ## 致谢
 - 本脚本佳明模块代码来自@[yihong0618](https://github.com/yihong0618) 的 [running_page](https://github.com/yihong0618/running_page) 个人跑步主页项目,在此非常感谢@[yihong0618](https://github.com/yihong0618)大佬的无私奉献！！！
 
@@ -17,6 +23,11 @@
 | GARMIN_NEWEST_NUM  |            最新记录条数            | (默认0，可写大于0) |
 |    COROS_EMAIL     |           高驰 登录邮箱            |                    |
 |   COROS_PASSWORD   |             高驰 密码              |                    |
+
+必须配置以下 Repository Secrets：`GARMIN_AUTH_DOMAIN`（`CN` 或 `COM`）、`GARMIN_EMAIL`、
+`GARMIN_PASSWORD`、`COROS_EMAIL`、`COROS_PASSWORD`，以及可选的 `GARMIN_NEWEST_NUM`。
+两个 workflow 使用同一组账号，分别负责 Garmin→COROS 和 COROS→Garmin；并发锁会阻止两个
+方向同时登录，避免 COROS 单设备登录互相踢下线。
 
 ## Github配置步骤
 ### 1.参数配置

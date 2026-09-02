@@ -6,19 +6,10 @@ config_path = CURRENT_DIR.rsplit('/', 1)[0]  # 上三级目录
 sys.path.append(config_path)
 
 from coros_client import CorosClient
-from config  import DB_DIR, COROS_FIT_DIR
+from config  import DB_DIR, COROS_FIT_DIR, load_sync_config
 from coros_db import CorosDB
 from garmin.garmin_client import GarminClient
 
-
-SYNC_CONFIG = {
-    'GARMIN_AUTH_DOMAIN': '',
-    'GARMIN_EMAIL': '',
-    'GARMIN_PASSWORD': '',
-    'GARMIN_NEWEST_NUM': 0,
-    "COROS_EMAIL": '',
-    "COROS_PASSWORD": '',
-}
 
 def init(coros_db):
     ## 判断RQ数据库是否存在
@@ -31,22 +22,9 @@ def init(coros_db):
 
 
 if __name__ == "__main__":
-  # 首先读取 面板变量 或者 github action 运行变量
-  for k in SYNC_CONFIG:
-      if os.getenv(k):
-          v = os.getenv(k)
-          SYNC_CONFIG[k] = v
-
-  COROS_EMAIL = SYNC_CONFIG["COROS_EMAIL"]
-  COROS_PASSWORD = SYNC_CONFIG["COROS_PASSWORD"]
-  corosClient = CorosClient(COROS_EMAIL, COROS_PASSWORD)
-
-  GARMIN_EMAIL = SYNC_CONFIG["GARMIN_EMAIL"]
-  GARMIN_PASSWORD = SYNC_CONFIG["GARMIN_PASSWORD"]
-  GARMIN_AUTH_DOMAIN = SYNC_CONFIG["GARMIN_AUTH_DOMAIN"]
-  GARMIN_NEWEST_NUM = SYNC_CONFIG["GARMIN_NEWEST_NUM"]
-
-  garminClient = GarminClient(GARMIN_EMAIL, GARMIN_PASSWORD, GARMIN_AUTH_DOMAIN, GARMIN_NEWEST_NUM)
+  config = load_sync_config()
+  corosClient = CorosClient(config.coros_email, config.coros_password)
+  garminClient = GarminClient(config.garmin_email, config.garmin_password, config.garmin_auth_domain, config.garmin_newest_num)
 
 
   ## db 名称

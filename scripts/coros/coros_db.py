@@ -1,6 +1,10 @@
 import os
-from sqlite_db import  SqliteDB
-from config import DB_DIR
+try:
+    from ..sqlite_db import SqliteDB
+    from ..config import DB_DIR
+except ImportError:  # direct script execution
+    from sqlite_db import SqliteDB
+    from config import DB_DIR
 
 
 class CorosDB:
@@ -20,7 +24,7 @@ class CorosDB:
             exists_query_set = db.execute(exists_select_sql, (id,)).fetchall()
             query_size = len(exists_query_set)
             if query_size == 0:
-              db.execute('insert into coros_activity (activity_id, sport_type) values (?,?)', (id,sport_type)) 
+              db.execute('insert or ignore into coros_activity (activity_id, sport_type) values (?,?)', (id,sport_type))
     
     def getUnSyncActivity(self):
         select_un_upload_sql = 'SELECT activity_id,sport_type FROM coros_activity WHERE is_sync_garmin = 0 limit 1000'
@@ -52,14 +56,13 @@ class CorosDB:
       with SqliteDB(os.path.join(DB_DIR, self._coros_db_name)) as db:
           db.execute('''
           
-          CREATE TABLE coros_activity(
+          CREATE TABLE IF NOT EXISTS coros_activity(
               id INTEGER NOT NULL PRIMARY KEY  AUTOINCREMENT ,
-              activity_id INTEGER NOT NULL  , 
+              activity_id INTEGER NOT NULL UNIQUE,
               sport_type INTEGER NOT NULL  , 
               is_sync_garmin INTEGER NOT NULL  DEFAULT 0,
               create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
               update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           ) 
 
-          '''
-          )
+          ''')

@@ -1,17 +1,21 @@
 name: garmin-sync-coros
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 1,8,21 * * ?'
+    - cron: '0 1,8,21 * * *'
+  workflow_dispatch:
+    inputs:
+      newest_num:
+        description: 'Maximum Garmin activities to inspect (0 means all pages)'
+        required: false
+        default: '10000'
+        type: string
 env:
-  GITHUB_NAME: BFlameSwift
-  GITHUB_EMAIL: BFlameSwift@163.com
   ## 佳明配置
   GARMIN_AUTH_DOMAIN: ${{ secrets.GARMIN_AUTH_DOMAIN }}
   GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
   GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
-  GARMIN_NEWEST_NUM: ${{ secrets.GARMIN_NEWEST_NUM }}
+  GARMIN_NEWEST_NUM: ${{ inputs.newest_num || secrets.GARMIN_NEWEST_NUM || '10000' }}
 
   ## Coros配置
   COROS_EMAIL: ${{ secrets.COROS_EMAIL }}
@@ -20,36 +24,40 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: garmin-sync-coros
+      cancel-in-progress: false
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - name: Set up Python 3.10
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      # from pdm
-      - name: Set Variables
-        id: set_variables
-        run: |
-          echo "::set-output name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
-          echo "::set-output name=PIP_CACHE::$(pip cache dir)"
-      - name: Cache PIP
-        uses: actions/cache@v3
+      - name: Cache pip
+        uses: actions/cache@v4
         with:
-          path: ${{ steps.set_variables.outputs.PIP_CACHE }}
-          key: Ubuntu-pip-${{ steps.set_variables.outputs.PY }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-        if: steps.pip-cache.outputs.cache-hit != 'true'
+          python -m pip install -r requirements.txt
       - name: Run Garmin Sync
         run: |
           python scripts/garmin/garmin_sync_coros.py
       - name: Push new cookie
         run: |
-          git config --local user.email "${{ env.GITHUB_EMAIL }}"
-          git config --local user.name "${{ env.GITHUB_NAME }}"
-          git add .
-          git commit -m 'update garmin activity' || echo "nothing to commit"
-          git push || echo "nothing to push"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add db garmin-fit coros-fit
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore(sync): persist sync state'
+            git push
+          fi

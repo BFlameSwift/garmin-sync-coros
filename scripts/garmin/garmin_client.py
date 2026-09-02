@@ -84,6 +84,8 @@ class GarminClient:
       activities = self.getActivities(start=start, limit=100)
       if len(activities) > 0:
          all_activities.extend(activities)
+         if self.newestNum and len(all_activities) >= self.newestNum:
+             return all_activities[:self.newestNum]
       else:
          return all_activities
       start += 100

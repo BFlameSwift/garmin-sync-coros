@@ -1,6 +1,10 @@
 import os
-from sqlite_db import  SqliteDB
-from config import DB_DIR
+try:
+    from ..sqlite_db import SqliteDB
+    from ..config import DB_DIR
+except ImportError:  # direct script execution
+    from sqlite_db import SqliteDB
+    from config import DB_DIR
 
 
 class GarminDB:
@@ -20,7 +24,7 @@ class GarminDB:
             exists_query_set = db.execute(exists_select_sql, (id,)).fetchall()
             query_size = len(exists_query_set)
             if query_size == 0:
-              db.execute('insert into garmin_activity (activity_id) values (?)', (id,)) 
+              db.execute('insert or ignore into garmin_activity (activity_id) values (?)', (id,))
     
     def getUnSyncActivity(self):
         select_un_upload_sql = 'SELECT activity_id FROM garmin_activity WHERE is_sync_coros = 0 limit 1000'
@@ -49,13 +53,12 @@ class GarminDB:
       with SqliteDB(os.path.join(DB_DIR, self._garmin_db_name)) as db:
           db.execute('''
           
-          CREATE TABLE garmin_activity(
+          CREATE TABLE IF NOT EXISTS garmin_activity(
               id INTEGER NOT NULL PRIMARY KEY  AUTOINCREMENT ,
-              activity_id INTEGER NOT NULL  , 
+              activity_id INTEGER NOT NULL UNIQUE,
               is_sync_coros INTEGER NOT NULL  DEFAULT 0,
               create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
               update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           ) 
 
-          '''
-          )
+          ''')
