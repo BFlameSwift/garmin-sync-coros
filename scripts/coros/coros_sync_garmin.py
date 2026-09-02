@@ -37,12 +37,12 @@ if __name__ == "__main__":
   all_activities = corosClient.getAllActivities()
   if all_activities == None or len(all_activities) == 0:
       exit()
+  # Keep manual/first-run verification bounded; state is persisted for later runs.
+  all_activities = all_activities[:config.sync_limit]
   for activity in all_activities:
       activity_id = activity["labelId"]
       sport_type = activity["sportType"]
       coros_db.saveActivity(activity_id, sport_type)
-
-
 
   un_sync_list = coros_db.getUnSyncActivity()
   if un_sync_list == None or len(un_sync_list) == 0:

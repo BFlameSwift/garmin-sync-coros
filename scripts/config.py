@@ -24,6 +24,7 @@ class SyncConfig:
     garmin_newest_num: int
     coros_email: str
     coros_password: str
+    sync_limit: int = 10000
     run_type: str = "garmin_to_coros"
 
 
@@ -47,6 +48,12 @@ def load_sync_config() -> SyncConfig:
     run_type = os.getenv("RUN_TYPE", "garmin_to_coros").strip().lower()
     if run_type not in {"garmin_to_coros", "coros_to_garmin"}:
         raise ConfigError("RUN_TYPE must be garmin_to_coros or coros_to_garmin")
+    try:
+        sync_limit = int(os.getenv("SYNC_LIMIT", "10000"))
+    except ValueError as exc:
+        raise ConfigError("SYNC_LIMIT must be an integer") from exc
+    if sync_limit < 1:
+        raise ConfigError("SYNC_LIMIT must be at least 1")
     return SyncConfig(
         garmin_auth_domain=domain,
         garmin_email=_required("GARMIN_EMAIL"),
@@ -54,5 +61,6 @@ def load_sync_config() -> SyncConfig:
         garmin_newest_num=newest,
         coros_email=_required("COROS_EMAIL"),
         coros_password=_required("COROS_PASSWORD"),
+        sync_limit=sync_limit,
         run_type=run_type,
     )

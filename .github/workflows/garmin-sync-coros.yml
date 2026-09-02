@@ -10,12 +10,18 @@ on:
         required: false
         default: '10000'
         type: string
+      sync_limit:
+        description: 'Maximum activities to process in this run'
+        required: false
+        default: '10000'
+        type: string
 env:
   ## 佳明配置
   GARMIN_AUTH_DOMAIN: ${{ secrets.GARMIN_AUTH_DOMAIN }}
   GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
   GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
   GARMIN_NEWEST_NUM: ${{ inputs.newest_num || secrets.GARMIN_NEWEST_NUM || '10000' }}
+  SYNC_LIMIT: ${{ inputs.sync_limit || '10000' }}
 
   ## Coros配置
   COROS_EMAIL: ${{ secrets.COROS_EMAIL }}
